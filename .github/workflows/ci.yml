@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # index.js imports nothing, so there is no dependency tree to install.
+      # test/verify.mjs still needs the real @deepseek-ai/dsh-tools schema
+      # validators; they are dev-only and never shipped, so install them loose.
+      - name: Install the DSH schema validators
+        run: npm install --no-save --no-package-lock @deepseek-ai/dsh-tools
+
+      - name: Syntax check
+        run: node --check index.js
+
+      - name: Run the verification harness
+        run: node test/verify.mjs

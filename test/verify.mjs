@@ -19,15 +19,19 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 // The real schema validators live in the installed Harness. Resolution order:
 //   1. $DSH_VENDOR_DIR        — explicit override (vendor copy extracted from app.asar)
 //   2. the local scratch copy — how this bundle was developed
-//   3. node resolution        — an installed @deepseek-ai/dsh-tools
-const DSH_TOOLS = path.join('@deepseek-ai', 'dsh-tools', 'lib', 'index.js');
+//   3. node resolution        — an installed @deepseek-ai/dsh-tools (what CI uses)
+//
+// The bare specifier goes through the package's "exports" map, so it must not
+// point at lib/index.js: that subpath is not exported and Node rejects it with
+// ERR_PACKAGE_PATH_NOT_EXPORTED.
+const DSH_TOOLS_ENTRY = path.join('@deepseek-ai', 'dsh-tools', 'lib', 'index.js');
 const candidates = [
-  process.env.DSH_VENDOR_DIR,
-  path.join(here, '..', '..', '..', 'scratch', 'dsh-plugin', 'vendor', 'dsh', 'node_modules'),
-  undefined,
-]
-  .filter((root) => root === undefined || root !== '')
-  .map((root) => (root === undefined ? '@deepseek-ai/dsh-tools/lib/index.js' : path.join(root, DSH_TOOLS)));
+  process.env.DSH_VENDOR_DIR
+    ? path.join(process.env.DSH_VENDOR_DIR, DSH_TOOLS_ENTRY)
+    : undefined,
+  path.join(here, '..', '..', '..', 'scratch', 'dsh-plugin', 'vendor', 'dsh', 'node_modules', DSH_TOOLS_ENTRY),
+  '@deepseek-ai/dsh-tools',
+].filter((candidate) => candidate !== undefined);
 
 let toolsModule;
 const tried = [];
@@ -43,7 +47,12 @@ if (toolsModule === undefined) {
   console.error(
     [
       'Cannot load the real @deepseek-ai/dsh-tools schema validators.',
-      'Point DSH_VENDOR_DIR at a directory containing @deepseek-ai/dsh-tools, e.g.',
+      'Install them from npm (this is what CI does):',
+      '',
+      '  npm install --no-save --no-package-lock @deepseek-ai/dsh-tools',
+      '  node test/verify.mjs',
+      '',
+      'Or point DSH_VENDOR_DIR at a copy extracted from the installed app:',
       '',
       '  node ../scratch/dsh-plugin/asar-extract.mjs \\',
       '    "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar" \\',

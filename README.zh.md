@@ -169,12 +169,25 @@ console.log(await provider.search({ query: '今天北京天气', maxResults: 3 }
 
 ## 发布到 npm
 
-包已经是可发布状态：`package.json` 里带 `name`、`license`、`repository`、`files`、`publishConfig.access: public`，且 `files` 只打包运行时需要的部分（`index.js`、`cordis.patch.yml`、`locale/*.json`、`icon.svg`）——验证脚本和 README 不进 tarball。
+发版走 CI：推一个 `v*` tag，**Release** 工作流就会跑测试、校验 tag 与 `package.json` 版本一致、发布到 npm，并自动建一个 GitHub release。不用在本地执行 `npm publish`。
+
+```bash
+npm version patch --no-git-tag-version     # 或 minor / major，也可以直接手改 package.json
+git commit -am "chore(release): $(node -p "require('./package.json').version")"
+git tag "v$(node -p "require('./package.json').version")"
+git push --follow-tags
+```
+
+**一次性配置**：到 <https://www.npmjs.com/settings/llldmiao/tokens> 建一个 granular access token，权限选 *read and write*，打开 **bypass 2FA**，并允许发布 `dsh-plugin-brave-search`。把它存成仓库 secret `NPM_TOKEN`（Settings → Secrets and variables → Actions）。工作流会把它作为 `NODE_AUTH_TOKEN` 使用；因为账号 2FA 处于 `auth-and-writes` 模式，这个 token 是必需的。
+
+**手动发布**依然可用，CI 不可用时就走这条路：
 
 ```bash
 npm publish --registry=https://registry.npmjs.org --dry-run   # 先看 tarball 内容
 npm publish --registry=https://registry.npmjs.org
 ```
+
+`package.json` 里带 `name`、`license`、`repository`、`files`、`publishConfig.access: public`。`files` 打包运行时需要的部分（`index.js`、`cordis.patch.yml`、`locale/*.json`、`icon.svg`）以及中英两份 README；验证脚本不进 tarball。
 
 注意事项：
 

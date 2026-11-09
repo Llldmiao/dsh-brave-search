@@ -163,12 +163,25 @@ console.log(await provider.search({ query: '今天北京天气', maxResults: 3 }
 
 ## Publishing to npm
 
-The package is publish-ready: `package.json` carries `name`, `license`, `repository`, `files` and `publishConfig.access: public`, and `files` ships only the runtime pieces (`index.js`, `cordis.patch.yml`, `locale/*.json`, `icon.svg`) — the test harness and README are not in the tarball.
+Releases run in CI: pushing a `v*` tag makes the **Release** workflow test the package, check that the tag matches `package.json`, publish to npm and open a GitHub release. No local `npm publish` is needed.
+
+```bash
+npm version patch --no-git-tag-version     # or minor / major, or edit package.json by hand
+git commit -am "chore(release): $(node -p "require('./package.json').version")"
+git tag "v$(node -p "require('./package.json').version")"
+git push --follow-tags
+```
+
+**One-time setup:** create a granular access token at <https://www.npmjs.com/settings/llldmiao/tokens> with *read and write* package permission, **bypass 2FA** enabled, and allowed to publish `dsh-plugin-brave-search`. Store it as the repository secret `NPM_TOKEN` (Settings → Secrets and variables → Actions). The workflow uses it as `NODE_AUTH_TOKEN`; it is required because the account has 2FA in `auth-and-writes` mode.
+
+**Manual publishing** still works if you prefer, and is what you need when CI is unavailable:
 
 ```bash
 npm publish --registry=https://registry.npmjs.org --dry-run   # inspect the tarball first
 npm publish --registry=https://registry.npmjs.org
 ```
+
+`package.json` carries `name`, `license`, `repository`, `files` and `publishConfig.access: public`. `files` ships the runtime pieces (`index.js`, `cordis.patch.yml`, `locale/*.json`, `icon.svg`) plus both README editions; the test harness is not in the tarball.
 
 Notes:
 
