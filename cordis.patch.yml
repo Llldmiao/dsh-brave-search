@@ -1,5 +1,5 @@
 - insert:
     - id: brave-search
-      name: '@lldmiao/dsh-plugin-brave-search'
+      name: 'dsh-plugin-brave-search'
       config:
         apiKeyEnv: BRAVE_SEARCH_API_KEY

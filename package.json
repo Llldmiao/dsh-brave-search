@@ -1,5 +1,5 @@
 {
-  "name": "@lldmiao/dsh-plugin-brave-search",
+  "name": "dsh-plugin-brave-search",
   "version": "1.0.0",
   "private": false,
   "type": "module",

@@ -62,7 +62,7 @@ Once published, any machine can install the bundle by name:
 
 ```bash
 "/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" \
-  plugin --profile desktop add @lldmiao/dsh-plugin-brave-search
+  plugin --profile desktop add dsh-plugin-brave-search
 ```
 
 then switch the `brave-search` row on in the **Plugins** page. An npm install is a normal (non-linked) package: upgrading means installing the new version with the same command and restarting.
@@ -168,7 +168,8 @@ npm publish --registry=https://registry.npmjs.org
 
 Notes:
 
-- The published name is scoped, `@lldmiao/dsh-plugin-brave-search`. Publish with `--access public` (already set through `publishConfig`), otherwise a scoped package defaults to private.
+- The package is unscoped, `dsh-plugin-brave-search`, so it publishes straight to the public registry under that name with no scope setup. A scoped name (`@name/...`) only works when an organization with exactly that name exists; npm usernames are lowercase and the account is `llldmiao`, so `@lldmiao/...` does not resolve and fails with `E404 Scope not found`.
+- Unscoped names are first-come-first-served on the public registry, so the name must still be free at publish time.
 - Release only reaches npm after the repository is pushed and tagged, e.g. `git tag v1.0.0 && git push --tags`. Keep `package.json` `version` and the tag in step.
 - `index.js` has no dependencies, so there is nothing to bundle and no `node_modules` in the tarball.
 
