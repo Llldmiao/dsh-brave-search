@@ -1,4 +1,4 @@
-# Brave 搜索 — DeepSeek Harness 插件
+# Brave Search — DeepSeek Harness plugin
 
 [English](README.md) | 中文
 
