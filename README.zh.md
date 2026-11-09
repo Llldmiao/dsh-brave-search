@@ -2,9 +2,11 @@
 
 [English](README.md) | 中文
 
-这是一个 Host 侧 bundle，把官方的 [Brave Search API skills](https://github.com/brave/brave-search-skills)（`curl` + `SKILL.md` 的说明式玩法）转成一等公民的 Harness 工具。模型不再需要先读 skill 再拼 `curl`，而是直接调用带类型定义的工具体，拿回紧凑、按 token 预算裁剪过的文本。
+让 DeepSeek Harness 能用 Brave 搜索网页：网页、新闻、图片、视频结果，可读的正文内容，带引用的 AI 回答，地点信息，以及搜索联想。模型不用再先读一遍 skill 文档、再手工拼 `curl`，而是直接调用专用工具，拿回紧凑、可直接使用的结果。
 
-由 `brave-search-skills` v1.5.0 转换而来（原 `skills/` 目录含 11 个 HTTP 接口，外加 `bx` CLI skill）。
+如果你愿意，还可以让内置的 `web_search` 工具也走 Brave，作为默认搜索。
+
+基于官方的 [Brave Search API skills](https://github.com/brave/brave-search-skills) v1.5.0。
 
 ## 工具
 
@@ -29,7 +31,7 @@
 
 ## 安装
 
-有两种方式把 bundle 装进 Harness profile。殊途同归：profile 里多一行 `brave-search`，再到**插件**页面打开开关。
+有两种安装方式。殊途同归：**插件**页面里出现 `brave-search` 这一行，把开关打开即可。
 
 ### 第一步 — 配好 API key（两种方式都需要）
 
@@ -54,13 +56,13 @@ git clone https://github.com/Llldmiao/dsh-brave-search.git ~/development/github/
   plugin --profile desktop add "link:$HOME/development/github/dsh-brave-search"
 ```
 
-然后在 Harness 侧边栏打开**插件**，把 `brave-search` 那一行打开。**选中 bundle 才会写进 profile 的 `dsh.profile.bundles`**，CLI 命令本身只负责装包。
+然后在 Harness 侧边栏打开**插件**，把 `brave-search` 那一行打开。CLI 命令本身只负责下载，真正启用是在插件页里选中它。
 
 能用 GUI 就优先用 GUI——在**插件**页点「添加插件」，指向 checkout 目录即可。
 
 ### 方式 B — 从 npm 安装
 
-发布之后，任何机器都可以按包名安装：
+也可以直接从 npm 按包名安装：
 
 ```bash
 "/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" \
@@ -86,13 +88,13 @@ git clone https://github.com/Llldmiao/dsh-brave-search.git ~/development/github/
     count: 10                         # 每次调用默认返回条数
 ```
 
-Brave 自己的默认值是 web/news/videos 各 20 条、images 50 条、place search 20 条。本 bundle 默认取 10，是为了让工具结果别太占上下文；每个工具都暴露了 `count`，模型可以主动要更多。
+Brave 自己的默认值是 web/news/videos 各 20 条、images 50 条、place search 20 条。本插件默认取 10，是为了让返回结果别太占上下文；每个工具都暴露了 `count`，模型可以主动要更多。
 
 `baseUrl` 可以带路径前缀（例如 `https://gateway.example/brave`），拼接路由时会保留该前缀。
 
 ## 把 Brave 设为默认 `web_search` provider
 
-除了自带工具，插件还会往 Harness 的 web seam（`ctx.web`）注册一个搜索 provider，于是内置的 `web_search` 工具可以跑在 Brave 上而不是别的 provider。provider id 是 `brave`（可用 `config.id` 覆盖）。
+除了自带工具，插件还可以充当 Harness 内置 `web_search` 工具的后端，让它通过 Brave 搜索，而不是别的搜索服务。它的 id 是 `brave`（可用 `config.id` 覆盖）。
 
 web seam 每次调用只选一个 provider：配了 id 且已注册可用就用它；没配 id 时，恰好一个可用 provider 会自动选中，多个可用会抛 `WEB_PROVIDER_AMBIGUOUS`。要让 Brave 成为默认，在 profile patch 里钉住它（bundle 自己的 patch 改不了别的包的配置）：
 

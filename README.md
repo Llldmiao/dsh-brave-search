@@ -2,9 +2,11 @@
 
 [English](README.md) | [中文](README.zh.md)
 
-A Host-side bundle that turns the official [Brave Search API skills](https://github.com/brave/brave-search-skills) (`curl` + `SKILL.md` instructions) into first-class Harness tools. Instead of asking an agent to read a skill and shell out to `curl`, the agent calls typed tools and gets compact, token-budgeted text back.
+Give DeepSeek Harness the ability to search the web with Brave: web, news, image and video results, readable page content, AI answers with citations, places, and autocomplete. Instead of asking the agent to read a skill and run `curl` by hand, it calls dedicated tools and gets back compact, ready-to-use results.
 
-Converted from `brave-search-skills` v1.5.0 (`skills/` directory: 11 HTTP endpoints plus the `bx` CLI skill).
+It can also make the built-in `web_search` tool search through Brave, if you want that as your default.
+
+Based on the official [Brave Search API skills](https://github.com/brave/brave-search-skills) v1.5.0.
 
 ## Tools
 
@@ -29,7 +31,7 @@ Endpoint capabilities are enforced per route, following the documented API: `off
 
 ## Install
 
-There are two ways to get the bundle into a Harness profile. Both end in the same place: a `brave-search` row in the profile, switched on in the **Plugins** page.
+There are two ways to install the plugin. Both end in the same place: a `brave-search` row in the **Plugins** page, switched on.
 
 ### Step 1 — the API key (both ways)
 
@@ -54,13 +56,13 @@ git clone https://github.com/Llldmiao/dsh-brave-search.git ~/development/github/
   plugin --profile desktop add "link:$HOME/development/github/dsh-brave-search"
 ```
 
-Then open **Plugins** in the Harness sidebar and switch the `brave-search` row on. Selecting the bundle is what adds it to the profile's `dsh.profile.bundles`; the CLI command alone only installs the package.
+Then open **Plugins** in the Harness sidebar and switch the `brave-search` row on. The CLI command on its own only downloads the package; selecting it in the Plugins page is what turns it on.
 
 Prefer the GUI when you can — in the **Plugins** page, choose *add plugin* and point it at the checkout directory.
 
 ### Option B — install from npm
 
-Once published, any machine can install the bundle by name:
+Any machine can also install it straight from npm by name:
 
 ```bash
 "/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" \
@@ -86,13 +88,13 @@ The patch row accepts these optional fields (defaults shown):
     count: 10                         # default result count per call
 ```
 
-Brave's own per-endpoint defaults are 20 results for web/news/videos, 50 for images and 20 for place search. The bundle defaults to 10 to keep tool results affordable, and each tool exposes `count` so the model can ask for more.
+Brave's own per-endpoint defaults are 20 results for web/news/videos, 50 for images and 20 for place search. This plugin defaults to 10 so results stay easy to read, and each tool exposes `count` so the model can ask for more.
 
 `baseUrl` may carry a path prefix (for example `https://gateway.example/brave`); the prefix is preserved when the route is appended.
 
 ## Use Brave as the default `web_search` provider
 
-Besides its own tools, the bundle registers a search provider with the Harness web seam (`ctx.web`), so the shipped `web_search` tool can run on Brave instead of another provider. The provider id is `brave` (override with `config.id`).
+Besides its own tools, the plugin also makes itself available as the backend for Harness's built-in `web_search` tool, so that tool can answer through Brave instead of another search provider. Its id is `brave` (override with `config.id`).
 
 The web seam picks exactly one provider per call: a pinned id wins when registered and usable, otherwise a single usable provider auto-selects and several usable providers raise `WEB_PROVIDER_AMBIGUOUS`. To make Brave the default, pin it in the profile patch (a bundle cannot set another package's config from its own patch):
 
