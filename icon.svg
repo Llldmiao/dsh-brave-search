@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Brave Search plugin icon">
+  <defs>
+    <linearGradient id="braveBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f97316"/>
+      <stop offset="0.55" stop-color="#e0464b"/>
+      <stop offset="1" stop-color="#8b3ff2"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#braveBg)"/>
+  <circle cx="28" cy="28" r="12.5" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <line x1="37" y1="37" x2="49" y2="49" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M28 20.5v15M20.5 28h15" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+</svg>
