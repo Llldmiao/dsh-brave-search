@@ -27,32 +27,49 @@ Endpoint capabilities are enforced per route, following the documented API: `off
 
 ## Install
 
-1. Put the key where the Harness reads its environment. The Harness loads `$DSH_HOME/.env` (by default `~/.dsh/.env`) at launch and materializes those values into `process.env`:
+There are two ways to get the bundle into a Harness profile. Both end in the same place: a `brave-search` row in the profile, switched on in the **Plugins** page.
 
-   ```bash
-   printf 'BRAVE_SEARCH_API_KEY=%s\n' 'your-key' >> ~/.dsh/.env
-   ```
+### Step 1 — the API key (both ways)
 
-   This is the same layer the Harness already uses for other gateway keys, and it does not travel with a repository. A key exported in the launching shell also works and takes precedence. The key is never read from this package or from the plugin patch.
+The Harness loads `$DSH_HOME/.env` (by default `~/.dsh/.env`) at launch and materializes those values into `process.env`:
 
-2. Restart the Harness so the new environment value is loaded.
+```bash
+printf 'BRAVE_SEARCH_API_KEY=%s\n' 'your-key' >> ~/.dsh/.env
+```
 
-3. Install this bundle. In the Harness Web UI, open **Plugins** in the sidebar and install the bundle from the absolute package directory:
+This is the same layer the Harness already uses for other gateway keys, and it does not travel with a repository. A key exported in the launching shell also works and takes precedence. The key is never read from this package or from the plugin patch.
 
-   ```
-   /Users/peilinhan/development/me/plugins/dsh-brave-search
-   ```
+Restart the Harness once so the new environment value is loaded.
 
-   The installed row is `brave-search`, enabled by default. Installing links the directory, so later edits to `index.js` take effect after a Harness restart.
+### Option A — install from a local checkout (recommended for development)
 
-   The bundled CLI reaches the same profile, with the package manager the Desktop app ships:
+Clone the repository anywhere, then install it as a linked package so edits to `index.js` are picked up on the next Harness restart:
 
-   ```bash
-   "/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" \
-     plugin --profile desktop add "link:/Users/peilinhan/development/me/plugins/dsh-brave-search"
-   ```
+```bash
+git clone https://github.com/Llldmiao/dsh-brave-search.git ~/development/github/dsh-brave-search
 
-   That command installs the package into the profile; the bundle still has to be selected in the Plugins page, which is what adds it to the profile's `dsh.profile.bundles`. Prefer the Plugins page unless you are scripting.
+"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" \
+  plugin --profile desktop add "link:$HOME/development/github/dsh-brave-search"
+```
+
+Then open **Plugins** in the Harness sidebar and switch the `brave-search` row on. Selecting the bundle is what adds it to the profile's `dsh.profile.bundles`; the CLI command alone only installs the package.
+
+Prefer the GUI when you can — in the **Plugins** page, choose *add plugin* and point it at the checkout directory.
+
+### Option B — install from npm
+
+Once published, any machine can install the bundle by name:
+
+```bash
+"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" \
+  plugin --profile desktop add @lldmiao/dsh-plugin-brave-search
+```
+
+then switch the `brave-search` row on in the **Plugins** page. An npm install is a normal (non-linked) package: upgrading means installing the new version with the same command and restarting.
+
+### Verify the install
+
+After the restart, a search through the Harness should come back from Brave. With the provider enabled, `web_search` returns sources with no answer text; `brave_search` returns the rendered result list. If the row shows 异常, the **Plugins** page detail view prints the reason under 原因 (see [Troubleshooting](#troubleshooting)).
 
 ## Configuration
 
@@ -131,16 +148,41 @@ console.log(await provider.search({ query: '今天北京天气', maxResults: 3 }
 "
 ```
 
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Row shows 异常, 原因 reads `cannot get property "web" without inject` | The bundle read `ctx.web` directly in `apply`. cordis only allows property access on services listed in the plugin's `inject`. | Don't list `web` in the top-level `inject` — it would make the whole bundle *require* a web seam and fail on deployments without one. Register the provider through `ctx.inject(['web'], cb)` instead, which is what `registerAsWebSearchProvider` does. |
+| `web_search` fails with `WEB_PROVIDER_CONFIGURED_MISSING: brave` | The profile pins `searchProvider: brave` but the bundle is disabled or not loaded. | Enable the row in **Plugins**, or remove the pin to fall back to auto-selection. |
+| `web_search` fails with `WEB_PROVIDER_AMBIGUOUS` | Two usable providers are registered and none is pinned. | Pin one: `searchProvider: brave` on the `web` row, or disable the other provider. |
+| `brave_search` returns HTTP 401/403 | The key lacks the plan that endpoint needs (suggest/spellcheck/answers are separate plans). | See [Requirements](#requirements). |
+
+## Publishing to npm
+
+The package is publish-ready: `package.json` carries `name`, `license`, `repository`, `files` and `publishConfig.access: public`, and `files` ships only the runtime pieces (`index.js`, `cordis.patch.yml`, `locale/*.json`, `icon.svg`) — the test harness and README are not in the tarball.
+
+```bash
+npm publish --registry=https://registry.npmjs.org --dry-run   # inspect the tarball first
+npm publish --registry=https://registry.npmjs.org
+```
+
+Notes:
+
+- The published name is scoped, `@lldmiao/dsh-plugin-brave-search`. Publish with `--access public` (already set through `publishConfig`), otherwise a scoped package defaults to private.
+- Release only reaches npm after the repository is pushed and tagged, e.g. `git tag v1.0.0 && git push --tags`. Keep `package.json` `version` and the tag in step.
+- `index.js` has no dependencies, so there is nothing to bundle and no `node_modules` in the tarball.
+
 ## Layout
 
 ```text
-plugins/dsh-brave-search/
-├── index.js            # Host half: tool definitions and the Brave client
-├── package.json        # bundle manifest (dsh.bundle.patch)
+dsh-brave-search/
+├── index.js            # Host half: tool definitions, Brave client, web-seam provider
+├── package.json        # bundle manifest (dsh.bundle.patch) + npm metadata
 ├── cordis.patch.yml    # inserts the `brave-search` row
 ├── locale/en.json      # Plugin Manager title/description
 ├── locale/zh.json
 ├── icon.svg            # original artwork for the plugin row
+├── LICENSE
 └── test/verify.mjs     # local verification harness
 ```
 

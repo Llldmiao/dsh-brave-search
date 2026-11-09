@@ -1,15 +1,46 @@
 {
-  "name": "@local/dsh-plugin-brave-search",
+  "name": "@lldmiao/dsh-plugin-brave-search",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
-  "description": "Brave Search API tools for the DeepSeek Harness: web, news, images, videos, LLM context, AI answers, local places, query suggestions and spellcheck.",
+  "description": "Brave Search tools for the DeepSeek Harness: web, news, images, videos, LLM context, AI answers, local places, query suggestions and spellcheck, plus a brave search provider for the built-in web_search tool.",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "brave",
+    "search",
+    "plugin",
+    "bundle"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Llldmiao/dsh-brave-search.git"
+  },
+  "homepage": "https://github.com/Llldmiao/dsh-brave-search#readme",
+  "bugs": {
+    "url": "https://github.com/Llldmiao/dsh-brave-search/issues"
+  },
   "exports": {
     ".": "./index.js",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
-  "files": ["index.js", "cordis.patch.yml", "locale/*.json", "icon.svg"],
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "engines": {
+    "node": ">=20.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "node test/verify.mjs"
+  },
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" }
   }
