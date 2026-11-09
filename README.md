@@ -1,5 +1,7 @@
 # Brave Search — DeepSeek Harness plugin
 
+[English](README.md) | [中文](README.zh.md)
+
 A Host-side bundle that turns the official [Brave Search API skills](https://github.com/brave/brave-search-skills) (`curl` + `SKILL.md` instructions) into first-class Harness tools. Instead of asking an agent to read a skill and shell out to `curl`, the agent calls typed tools and gets compact, token-budgeted text back.
 
 Converted from `brave-search-skills` v1.5.0 (`skills/` directory: 11 HTTP endpoints plus the `bx` CLI skill).
